@@ -9,6 +9,10 @@ local GameConfig = {
 	AllowSinglePlayerTest = true,
 
 	OrbCount = 7,
+	-- ProximityPrompt distance (studs); more reliable than physics Touched alone.
+	OrbProximityDistance = 12,
+	-- Min seconds between interact attempts per player per orb (stops spam / double fires).
+	OrbInteractDebounceSeconds = 0.45,
 	OrbCooldownSeconds = 4,
 	MultiplicationTimeoutSeconds = 20,
 	RpsRoundTimeoutSeconds = 12,

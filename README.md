@@ -19,6 +19,7 @@ Install the Rojo plugin in Studio, click **Connect** to `localhost:34872` (use t
 
 ## Local playtesting
 
+- Collect Dragon Balls by standing near them and pressing **E** (keyboard) / **X** (gamepad), or by touching the ball. Interaction uses `ProximityPrompt` so prompts are reliable; tune `OrbProximityDistance` and `OrbInteractDebounceSeconds` in `GameConfig` if needed.
 - With `GameConfig.AllowSinglePlayerTest` set to `true`, a **single player** can start a match (handy in Studio).
 - For real 2-player matches, set `AllowSinglePlayerTest` to `false` and keep `PlayersRequired = 2`.
 

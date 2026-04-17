@@ -2,6 +2,7 @@
 
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameConfig = require(ReplicatedStorage.Config.GameConfig)
@@ -11,21 +12,25 @@ export type OrbInfo = {
 	part: BasePart,
 	id: string,
 	star: number,
-	connection: RBXScriptConnection?,
+	touchConn: RBXScriptConnection?,
 }
 
 local DragonBallService = {}
 local remotes = GameRemotes.Ensure()
 
 local orbs: { OrbInfo } = {}
+local knownOrbIds: { [string]: boolean } = {}
 local cooldownUntil: { [string]: number } = {}
 local lockedOrb: { [string]: boolean } = {}
+local lastInteractAt: { [string]: number } = {}
 
 local puzzleService: any = nil
 local winService: any = nil
 local getPhase: (() -> string)? = nil
 local onFullWin: ((Player) -> ())? = nil
 local broadcastCollections: (() -> ())? = nil
+
+local promptHooked = false
 
 local function shuffle<T>(arr: { T }, rng: Random)
 	for i = #arr, 2, -1 do
@@ -40,7 +45,77 @@ function DragonBallService._broadcastCollections()
 	end
 end
 
+local function debounceOk(player: Player, orbId: string): boolean
+	local key = tostring(player.UserId) .. "_" .. orbId
+	local now = os.clock()
+	local last = lastInteractAt[key] or 0
+	if now - last < GameConfig.OrbInteractDebounceSeconds then
+		return false
+	end
+	lastInteractAt[key] = now
+	return true
+end
+
+--[[
+	Starts puzzle if allowed. Returns true if Begin() was invoked successfully.
+]]
+local function requestOrbPuzzle(player: Player, orbId: string, star: number): boolean
+	local phase = if getPhase then getPhase() else "Lobby"
+	if phase ~= "InMatch" then
+		return false
+	end
+	if not knownOrbIds[orbId] then
+		return false
+	end
+	if winService and winService.HasStar(player.UserId, star) then
+		return false
+	end
+	if lockedOrb[orbId] then
+		return false
+	end
+	local now = workspace:GetServerTimeNow()
+	if cooldownUntil[orbId] and now < cooldownUntil[orbId] then
+		return false
+	end
+	if not debounceOk(player, orbId) then
+		return false
+	end
+
+	lockedOrb[orbId] = true
+	if puzzleService then
+		local ok = puzzleService.Begin(player, orbId, star)
+		if not ok then
+			lockedOrb[orbId] = false
+		end
+		return ok
+	end
+	lockedOrb[orbId] = false
+	return false
+end
+
+local function onProximityPromptTriggered(prompt: ProximityPrompt, player: Player)
+	local parent = prompt.Parent
+	if not parent or not parent:IsA("BasePart") then
+		return
+	end
+	local orbId = parent:GetAttribute("OrbId")
+	local star = parent:GetAttribute("Star")
+	if typeof(orbId) ~= "string" or typeof(star) ~= "number" then
+		return
+	end
+	requestOrbPuzzle(player, orbId, star)
+end
+
+local function hookProximityPromptService()
+	if promptHooked then
+		return
+	end
+	promptHooked = true
+	ProximityPromptService.PromptTriggered:Connect(onProximityPromptTriggered)
+end
+
 local function destroyOrb(orbId: string)
+	knownOrbIds[orbId] = nil
 	local idx: number? = nil
 	for i, info in orbs do
 		if info.id == orbId then
@@ -52,8 +127,8 @@ local function destroyOrb(orbId: string)
 		return
 	end
 	local info = orbs[idx :: number]
-	if info.connection then
-		info.connection:Disconnect()
+	if info.touchConn then
+		info.touchConn:Disconnect()
 	end
 	if info.part.Parent then
 		info.part:Destroy()
@@ -63,6 +138,8 @@ end
 
 function DragonBallService.SpawnOrbs(orbPositions: { Vector3 }, seed: number)
 	DragonBallService.ClearOrbs()
+	hookProximityPromptService()
+
 	local rng = Random.new(seed + 911)
 	local positions = table.clone(orbPositions)
 	shuffle(positions, rng)
@@ -92,18 +169,29 @@ function DragonBallService.SpawnOrbs(orbPositions: { Vector3 }, seed: number)
 			orb.Parent = workspace
 		end
 
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.Name = "CollectPrompt"
+		prompt.ActionText = "Solve"
+		prompt.ObjectText = string.format("%d-star Dragon Ball", star)
+		prompt.MaxActivationDistance = GameConfig.OrbProximityDistance
+		prompt.HoldDuration = 0
+		prompt.RequiresLineOfSight = false
+		prompt.KeyboardKeyCode = Enum.KeyCode.E
+		prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
+		prompt.Style = Enum.ProximityPromptStyle.Default
+		prompt.Parent = orb
+
 		local info: OrbInfo = {
 			part = orb,
 			id = id,
 			star = star,
-			connection = nil,
+			touchConn = nil,
 		}
 
-		info.connection = orb.Touched:Connect(function(hit: BasePart)
-			local phase = if getPhase then getPhase() else "Lobby"
-			if phase ~= "InMatch" then
-				return
-			end
+		knownOrbIds[id] = true
+
+		-- Touched is unreliable on rolling balls; kept as a secondary path with shared debounce.
+		info.touchConn = orb.Touched:Connect(function(hit: BasePart)
 			local model = hit:FindFirstAncestorOfClass("Model")
 			if not model then
 				return
@@ -112,30 +200,7 @@ function DragonBallService.SpawnOrbs(orbPositions: { Vector3 }, seed: number)
 			if not player then
 				return
 			end
-			local uid = player.UserId
-			if winService and winService.HasStar(uid, star) then
-				return
-			end
-			local oid = orb:GetAttribute("OrbId") :: string?
-			if not oid or oid ~= id then
-				return
-			end
-			if lockedOrb[id] then
-				return
-			end
-			local now = workspace:GetServerTimeNow()
-			if cooldownUntil[id] and now < cooldownUntil[id] then
-				return
-			end
-			lockedOrb[id] = true
-			if puzzleService then
-				local ok = puzzleService.Begin(player, id, star)
-				if not ok then
-					lockedOrb[id] = false
-				end
-			else
-				lockedOrb[id] = false
-			end
+			requestOrbPuzzle(player, id, star)
 		end)
 
 		table.insert(orbs, info)
@@ -144,16 +209,18 @@ end
 
 function DragonBallService.ClearOrbs()
 	for _, info in orbs do
-		if info.connection then
-			info.connection:Disconnect()
+		if info.touchConn then
+			info.touchConn:Disconnect()
 		end
 		if info.part.Parent then
 			info.part:Destroy()
 		end
 	end
 	orbs = {}
+	knownOrbIds = {}
 	cooldownUntil = {}
 	lockedOrb = {}
+	lastInteractAt = {}
 end
 
 function DragonBallService.Init(
@@ -168,6 +235,7 @@ function DragonBallService.Init(
 	getPhase = phaseGetter
 	onFullWin = onWinAll
 	broadcastCollections = broadcastCols
+	hookProximityPromptService()
 end
 
 function DragonBallService.OnPuzzleSolved(player: Player, orbId: string, star: number)
