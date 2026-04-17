@@ -46,7 +46,7 @@ Install the Rojo plugin in Studio, click **Connect** to `localhost:34872` (use t
 | `/db spawn` | Teleport to **rescue spawn** (same as fall recovery) |
 | `/db phase` | Print current phase (Lobby / InMatch, etc.) |
 
-**Text Chat:** the script listens to **`RBXGeneral`** `MessageReceived` as well as `Player.Chatted`, so default Text Chat in Studio should work. On startup you should see `[DragonBall /db] Listening on TextChat RBXGeneral + Player.Chatted` in Output once.
+**Text Chat:** `TextChannel.MessageReceived` only runs on the **client**, so the server registers a **`TextChatCommand`** under `TextChatService` with `PrimaryAlias = "/db"` (same pattern as [custom chat commands](https://create.roblox.com/docs/chat/examples/custom-text-chat-commands)). `Player.Chatted` is still connected for **legacy** chat (`ChatVersion.LegacyChatService`). On startup look for `[DragonBall /db] Registered TextChatService TextChatCommand...` in **Output**.
 
 ### Self-test on boot
 

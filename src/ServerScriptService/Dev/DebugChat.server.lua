@@ -23,7 +23,7 @@ local DragonBallService = require(ServerScriptService.Game.DragonBallService)
 local ArenaSafety = require(ServerScriptService.World.ArenaSafety)
 local GameStateManager = require(ServerScriptService.Game.GameStateManager)
 
--- TextChat + legacy Chatted can both deliver the same line; ignore duplicates briefly.
+-- TextChatCommand + legacy Chatted can both deliver the same line; ignore duplicates briefly.
 local lastDbLine: { [number]: { t: number, s: string } } = {}
 
 local function splitWords(s: string): { string }
@@ -155,33 +155,36 @@ for _, p in Players:GetPlayers() do
 	hookPlayerChatted(p)
 end
 
--- Default Text Chat does not always fire Player.Chatted; listen on RBXGeneral as well.
+--[[
+	TextChannel.MessageReceived only runs on the CLIENT (Roblox API). For default Text Chat,
+	register a TextChatCommand so the SERVER receives Triggered with the full line.
+	See: https://create.roblox.com/docs/chat/examples/custom-text-chat-commands
+]]
 task.defer(function()
-	local channels = TextChatService:FindFirstChild("TextChannels")
-		or TextChatService:WaitForChild("TextChannels", 45)
-	if not channels then
-		warn("[DragonBall /db] TextChannels not found; relying on Player.Chatted only.")
+	local cv = TextChatService.ChatVersion
+	if cv == Enum.ChatVersion.LegacyChatService then
+		print("[DragonBall /db] Legacy chat: using Player.Chatted only (TextChatCommand not used).")
 		return
 	end
-	local general = channels:FindFirstChild("RBXGeneral") or channels:WaitForChild("RBXGeneral", 15)
-	if not general or not general:IsA("TextChannel") then
-		warn("[DragonBall /db] RBXGeneral TextChannel not found; relying on Player.Chatted only.")
-		return
+
+	local existing = TextChatService:FindFirstChild("DragonBallDebugCommand")
+	if existing then
+		existing:Destroy()
 	end
-	general.MessageReceived:Connect(function(message: any)
-		local text = message.Text
-		if typeof(text) ~= "string" then
-			return
-		end
-		local src = message.TextSource
-		if not src then
-			return
-		end
-		local plr = Players:GetPlayerByUserId(src.UserId)
+
+	local cmd = Instance.new("TextChatCommand")
+	cmd.Name = "DragonBallDebugCommand"
+	cmd.PrimaryAlias = "/db"
+	cmd.AutocompleteVisible = true
+	cmd.Parent = TextChatService
+
+	cmd.Triggered:Connect(function(originTextSource: TextSource, unfilteredText: string)
+		local plr = Players:GetPlayerByUserId(originTextSource.UserId)
 		if not plr then
 			return
 		end
-		onChat(plr, text)
+		onChat(plr, unfilteredText)
 	end)
-	print("[DragonBall /db] Listening on TextChat RBXGeneral + Player.Chatted")
+
+	print("[DragonBall /db] Registered TextChatService TextChatCommand PrimaryAlias=/db (see Output when you run /db help)")
 end)
