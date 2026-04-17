@@ -1,6 +1,6 @@
 # roblox-dragonball
 
-Dragon Ball–themed MVP: procedural map, seven star-rated Dragon Balls, random puzzles (times tables / best-of-3 RPS), 1–7 star HUD, and a short Shenron-style win sequence (~10 s).
+Dragon Ball–themed MVP: procedural map, seven star-rated Dragon Balls, random puzzles (**times tables as 4-button multiple choice** for touch/tablet / best-of-3 RPS), 1–7 star HUD, and a short Shenron-style win sequence (~10 s).
 
 ## Prerequisites
 

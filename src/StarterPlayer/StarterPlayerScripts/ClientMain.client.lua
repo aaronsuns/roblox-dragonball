@@ -147,8 +147,8 @@ backdrop.BackgroundTransparency = 0.35
 backdrop.Parent = puzzleGui
 
 local panel = Instance.new("Frame")
-panel.Size = UDim2.new(0, 420, 0, 320)
-panel.Position = UDim2.new(0.5, -210, 0.5, -160)
+panel.Size = UDim2.new(0, 440, 0, 392)
+panel.Position = UDim2.new(0.5, -220, 0.5, -196)
 panel.BackgroundColor3 = Color3.fromRGB(25, 28, 40)
 panel.Parent = puzzleGui
 
@@ -163,8 +163,8 @@ title.Text = "Challenge"
 title.Parent = panel
 
 local body = Instance.new("TextLabel")
-body.Size = UDim2.new(1, -20, 0, 60)
-body.Position = UDim2.new(0, 10, 0, 55)
+body.Size = UDim2.new(1, -20, 0, 52)
+body.Position = UDim2.new(0, 10, 0, 52)
 body.BackgroundTransparency = 1
 body.Font = Enum.Font.Gotham
 body.TextWrapped = true
@@ -190,11 +190,27 @@ submitBtn.Font = Enum.Font.GothamBold
 submitBtn.TextScaled = true
 submitBtn.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
 submitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+submitBtn.Visible = false
 submitBtn.Parent = panel
+
+local mulGrid = Instance.new("Frame")
+mulGrid.Name = "MulChoices"
+mulGrid.Size = UDim2.new(1, -24, 0, 176)
+mulGrid.Position = UDim2.new(0, 12, 0, 112)
+mulGrid.BackgroundTransparency = 1
+mulGrid.Visible = false
+mulGrid.Parent = panel
+
+local mulLayout = Instance.new("UIGridLayout")
+mulLayout.CellSize = UDim2.new(0, 200, 0, 78)
+mulLayout.CellPadding = UDim2.new(0, 10, 0, 10)
+mulLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+mulLayout.SortOrder = Enum.SortOrder.LayoutOrder
+mulLayout.Parent = mulGrid
 
 local rpsRow = Instance.new("Frame")
 rpsRow.Size = UDim2.new(1, -20, 0, 50)
-rpsRow.Position = UDim2.new(0, 10, 0, 130)
+rpsRow.Position = UDim2.new(0, 10, 0, 118)
 rpsRow.BackgroundTransparency = 1
 rpsRow.Visible = false
 rpsRow.Parent = panel
@@ -215,8 +231,8 @@ for i = 0, 2 do
 end
 
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0.45, 0, 0, 40)
-closeBtn.Position = UDim2.new(0.5, 0, 0, 200)
+closeBtn.Size = UDim2.new(1, -40, 0, 44)
+closeBtn.Position = UDim2.new(0, 20, 0, 318)
 closeBtn.Text = "Close"
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.TextScaled = true
@@ -226,11 +242,22 @@ closeBtn.Parent = panel
 
 local currentKind: string? = nil
 
+local function clearMulChoiceButtons()
+	for _, ch in mulGrid:GetChildren() do
+		if ch:IsA("TextButton") then
+			ch:Destroy()
+		end
+	end
+end
+
 local function hidePuzzle()
 	puzzleGui.Enabled = false
 	currentKind = nil
 	inputBox.Visible = false
+	submitBtn.Visible = false
 	rpsRow.Visible = false
+	mulGrid.Visible = false
+	clearMulChoiceButtons()
 	inputBox.Text = ""
 	UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 end
@@ -267,12 +294,51 @@ remotes.OpenPuzzle.OnClientEvent:Connect(function(payload: any)
 	currentKind = kind
 	title.Text = "Dragon Ball (" .. tostring(payload.star) .. "-star)"
 	if kind == "Multiplication" then
-		inputBox.Visible = true
 		rpsRow.Visible = false
-		body.Text = string.format("What is %d × %d?", payload.a or 0, payload.b or 0)
-		inputBox.Text = ""
+		clearMulChoiceButtons()
+		body.Text = string.format(
+			"What is %d × %d?\nTap the correct answer.",
+			payload.a or 0,
+			payload.b or 0
+		)
+		local choices = payload.choices
+		local okChoices = typeof(choices) == "table" and #choices >= 4
+		if okChoices then
+			inputBox.Visible = false
+			submitBtn.Visible = false
+			mulGrid.Visible = true
+			local chList = choices :: { any }
+			for i = 1, #chList do
+				local v = chList[i]
+				if typeof(v) == "number" then
+					local value = v
+					local btn = Instance.new("TextButton")
+					btn.Name = "Choice_" .. tostring(i)
+					btn.LayoutOrder = i
+					btn.Text = tostring(value)
+					btn.Font = Enum.Font.GothamBold
+					btn.TextScaled = true
+					btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+					btn.BackgroundColor3 = Color3.fromRGB(55, 95, 200)
+					btn.MouseButton1Click:Connect(function()
+						if currentKind == "Multiplication" then
+							remotes.SubmitPuzzle:FireServer({ answer = value })
+						end
+					end)
+					btn.Parent = mulGrid
+				end
+			end
+		else
+			mulGrid.Visible = false
+			inputBox.Visible = true
+			submitBtn.Visible = true
+			inputBox.Text = ""
+		end
 	elseif kind == "RpsBestOf3" then
+		mulGrid.Visible = false
+		clearMulChoiceButtons()
 		inputBox.Visible = false
+		submitBtn.Visible = false
 		rpsRow.Visible = true
 		local yours = payload.lastRound and payload.lastRound.yours
 		local cpu = payload.lastRound and payload.lastRound.cpu

@@ -37,6 +37,61 @@ local function closeFor(player: Player, success: boolean)
 	remotes.PuzzleClosed:FireClient(player, success)
 end
 
+--[[
+	Four unique positive integers including a*b; shuffled for multiple-choice UI (tablet-friendly).
+]]
+local function buildMultiplicationChoices(a: number, b: number): { number }
+	local correct = a * b
+	local wrongs: { number } = {}
+	local seen: { [number]: boolean } = { [correct] = true }
+
+	local function offer(n: number)
+		if typeof(n) ~= "number" then
+			return
+		end
+		local k = math.floor(n + 0.5)
+		if k <= 0 or k > 200 or seen[k] then
+			return
+		end
+		seen[k] = true
+		table.insert(wrongs, k)
+	end
+
+	if a > 1 then
+		offer((a - 1) * b)
+	end
+	if b > 1 then
+		offer(a * (b - 1))
+	end
+	offer((a + 1) * b)
+	offer(a * (b + 1))
+	offer(correct + 7)
+	offer(correct - 7)
+	offer(correct + 11)
+	offer(a * b + a)
+	offer(a * b - b)
+
+	local rng = Random.new()
+	local guard = 0
+	while #wrongs < 3 and guard < 80 do
+		guard += 1
+		local jitter = rng:NextInteger(-35, 35)
+		offer(correct + jitter)
+	end
+	local n = 1
+	while #wrongs < 3 do
+		offer(correct + n)
+		n += 1
+	end
+
+	local out = { correct, wrongs[1] :: number, wrongs[2] :: number, wrongs[3] :: number }
+	for i = 4, 2, -1 do
+		local j = rng:NextInteger(1, i)
+		out[i], out[j] = out[j], out[i]
+	end
+	return out
+end
+
 local function beats(a: number, b: number): number
 	-- 0 rock 1 paper 2 scissors; returns 1 if a wins, -1 if b wins, 0 tie
 	if a == b then
@@ -187,12 +242,14 @@ function PuzzleService.Begin(player: Player, orbId: string, star: number): boole
 		session.mulB = math.random(1, 10)
 		session.mulDeadline = workspace:GetServerTimeNow() + GameConfig.MultiplicationTimeoutSeconds
 		sessions[player.UserId] = session
+		local choices = buildMultiplicationChoices(session.mulA :: number, session.mulB :: number)
 		remotes.OpenPuzzle:FireClient(player, {
 			sessionId = session.id,
 			kind = "Multiplication",
 			star = star,
 			a = session.mulA,
 			b = session.mulB,
+			choices = choices,
 			expiresAtUnix = session.mulDeadline,
 		})
 	else
