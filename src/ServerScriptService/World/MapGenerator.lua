@@ -78,6 +78,32 @@ local function addPerimeterWalls(folder: Folder, baseY: number, rimRadius: numbe
 	)
 end
 
+local function arenaHorizontalSpan(rimRadius: number): number
+	local thickness = 4
+	return rimRadius * 2 + thickness * 2 + 24
+end
+
+local function addArenaCeiling(folder: Folder, baseY: number, rimRadius: number)
+	if not GameConfig.ArenaCeilingEnabled then
+		return
+	end
+	local span = arenaHorizontalSpan(rimRadius)
+	local th = GameConfig.ArenaCeilingThicknessStuds
+	local undersideY = baseY + GameConfig.ArenaCeilingClearanceAboveBaseY
+	local centerY = undersideY + th * 0.5
+
+	local p = Instance.new("Part")
+	p.Name = "ArenaCeiling"
+	p.Anchored = true
+	p.CanCollide = GameConfig.ArenaCeilingCanCollide
+	p.Material = Enum.Material.SmoothPlastic
+	p.Color = Color3.fromRGB(95, 145, 128)
+	p.Transparency = GameConfig.ArenaCeilingTransparency
+	p.Size = Vector3.new(span, th, span)
+	p.CFrame = CFrame.new(0, centerY, 0)
+	p.Parent = folder
+end
+
 local function scatterObstacle(folder: Folder, pos: Vector3, w: number, h: number, d: number, color: Color3)
 	local p = Instance.new("Part")
 	p.Name = "Obstacle"
@@ -127,7 +153,7 @@ function MapGenerator.Generate(seed: number): MapResult
 
 	for _ = 1, GameConfig.WallCount do
 		local angle = rng:NextNumber(0, math.pi * 2)
-		local dist = rng:NextNumber(40, GameConfig.MapSize * 0.45)
+		local dist = rng:NextNumber(GameConfig.WallMinDistanceFromCenter, GameConfig.MapSize * 0.45)
 		local x = math.cos(angle) * dist
 		local z = math.sin(angle) * dist
 		local len = rng:NextNumber(24, 60)
@@ -144,6 +170,7 @@ function MapGenerator.Generate(seed: number): MapResult
 	end
 
 	addPerimeterWalls(folder, baseY, rimRadius, GameConfig.PerimeterWallHeight)
+	addArenaCeiling(folder, baseY, rimRadius)
 
 	local orbSlots: { Vector3 } = {}
 	for _ = 1, 48 do

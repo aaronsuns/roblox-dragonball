@@ -43,7 +43,7 @@ Install the Rojo plugin in Studio, click **Connect** to `localhost:34872` (use t
 ### Falls and arena bounds
 
 - **Semi-transparent perimeter walls** reduce walking off the island.
-- If you still drop onto the default Baseplate: while horizontally under the arena footprint and below `FallRescueBelowY`, you are **teleported to the rescue spawn** (same offset as `spawnA`). Tune `FallRescueBelowY`, `FallRescueRadiusExtra`, and `PerimeterWallHeight` in [`GameConfig.lua`](src/ReplicatedStorage/Config/GameConfig.lua).
+- If you still drop onto the default Baseplate: while horizontally under the arena footprint and below `FallRescueBelowY`, you are **teleported to the rescue spawn** (same offset as `spawnA`). Tune `FallRescueBelowY`, `FallRescueRadiusExtra`, and `PerimeterWallHeight` in [`GameConfig.lua`](src/ReplicatedStorage/Config/GameConfig.lua). An optional **ceiling** (`ArenaCeiling*`) blocks scouting from above; disable with `ArenaCeilingEnabled = false` if you prefer an open sky.
 
 ### Quick manual tests (`/db` chat)
 

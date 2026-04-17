@@ -222,7 +222,7 @@ function PuzzleService.Begin(player: Player, orbId: string, star: number): boole
 	if sessions[player.UserId] then
 		return false
 	end
-	local mul = math.random() < 0.5
+	local mul = math.random() < GameConfig.PuzzleMultiplicationChance
 	local session: ActiveSession = {
 		id = HttpService:GenerateGUID(false),
 		kind = mul and "Multiplication" or "RpsBestOf3",

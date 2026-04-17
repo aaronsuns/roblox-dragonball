@@ -16,6 +16,8 @@ local GameConfig = {
 	OrbCooldownSeconds = 4,
 	MultiplicationTimeoutSeconds = 20,
 	RpsRoundTimeoutSeconds = 12,
+	-- Chance each orb puzzle is multiplication (arithmetic) vs RPS; 0–1.
+	PuzzleMultiplicationChance = 0.82,
 
 	ShenronCinematicSeconds = 10,
 	PostMatchResetSeconds = 3,
@@ -23,8 +25,10 @@ local GameConfig = {
 	MapSize = 180,
 	BaseplateThickness = 2,
 	TerrainNoiseAmplitude = 6,
-	ObstacleCount = 28,
-	WallCount = 12,
+	ObstacleCount = 40,
+	WallCount = 22,
+	-- Radial walls spawn between this distance and MapSize*0.45 (lower = denser center).
+	WallMinDistanceFromCenter = 8,
 
 	-- Must match MapGenerator floor reference height.
 	ArenaBaseY = 10,
@@ -33,7 +37,15 @@ local GameConfig = {
 	-- Horizontal margin beyond cell rim for “under arena” rescue column.
 	FallRescueRadiusExtra = 22,
 	-- Invisible perimeter wall height above deck.
-	PerimeterWallHeight = 55,
+	PerimeterWallHeight = 52,
+
+	-- Roof slab over the island (same span as perimeter) so high camera / flying cannot trivially scout orbs.
+	ArenaCeilingEnabled = true,
+	ArenaCeilingThicknessStuds = 6,
+	-- Underside of ceiling sits this many studs above ArenaBaseY (keep > PerimeterWallHeight).
+	ArenaCeilingClearanceAboveBaseY = 54,
+	ArenaCeilingTransparency = 0.14,
+	ArenaCeilingCanCollide = true,
 
 	SpawnOffsetFromCenter = 55,
 
