@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameConfig = require(ReplicatedStorage.Config.GameConfig)
 local GameRemotes = require(ReplicatedStorage.Remotes.GameRemotes)
+local OrbVisuals = require(script.Parent.Parent.World.OrbVisuals)
 
 export type OrbInfo = {
 	part: BasePart,
@@ -154,7 +155,7 @@ function DragonBallService.SpawnOrbs(orbPositions: { Vector3 }, seed: number)
 		orb.Shape = Enum.PartType.Ball
 		orb.Size = Vector3.new(4, 4, 4)
 		orb.Material = Enum.Material.SmoothPlastic
-		orb.Color = Color3.fromRGB(255, 210, 60)
+		orb.Color = Color3.fromRGB(255, 210, 60) -- OrbVisuals overwrites material/color for M0 look
 		local id = HttpService:GenerateGUID(false)
 		orb:SetAttribute("OrbId", id)
 		orb:SetAttribute("Star", star)
@@ -180,6 +181,8 @@ function DragonBallService.SpawnOrbs(orbPositions: { Vector3 }, seed: number)
 		prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
 		prompt.Style = Enum.ProximityPromptStyle.Default
 		prompt.Parent = orb
+
+		OrbVisuals.apply(orb, star)
 
 		local info: OrbInfo = {
 			part = orb,

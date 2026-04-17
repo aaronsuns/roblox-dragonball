@@ -91,9 +91,10 @@
 
 ## 6. 分阶段里程碑（建议执行顺序）
 
-1. **M0（1–2 天）**  
-   - 调 `Lighting` + `Atmosphere` + `Sky` 做出「偏绿星球」基调。  
-   - 龙珠：粒子 + 弱光 + 橙材质微调（不写新贴图也能略提升）。
+1. **M0（1–2 天）** — **已在仓库实现一版**  
+   - `LightingTheme.server.lua`：`Lighting` + `Atmosphere` + `ColorCorrection`（偏绿那美克星感）。  
+   - `OrbVisuals`：`Glass` 材质、琥珀色、`ParticleEmitter` 闪光、`PointLight`、头顶 `★` 星数（贴图 `Tex_DragonBall_Stars1–7` 非 0 时再加 `Decal`）。  
+   - `MapGenerator`：草地颜色读 `VisualTheme` 青绿渐变。可调 [`VisualTheme.lua`](../src/ReplicatedStorage/Config/VisualTheme.lua)。
 
 2. **M1（1 周）**  
    - 7 张星阵 PNG + 球体 Decal/双层壳；`AssetRegistry` 接好；关闭调试用 Billboard 星标。  

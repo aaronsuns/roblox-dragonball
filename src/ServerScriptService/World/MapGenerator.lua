@@ -4,6 +4,7 @@ local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameConfig = require(ReplicatedStorage.Config.GameConfig)
+local VisualTheme = require(ReplicatedStorage.Config.VisualTheme)
 
 export type MapResult = {
 	folder: Folder,
@@ -33,7 +34,8 @@ local function cellPart(parent: Folder, cx: number, cz: number, size: number, y:
 	local h = math.noise(nx * 1.7, nz * 1.7, seed * 0.001) * GameConfig.TerrainNoiseAmplitude
 	p.CFrame = CFrame.new(cx * size, y + h, cz * size)
 	p.Material = Enum.Material.Grass
-	p.Color = Color3.fromRGB(72, 120, 64)
+	local t = (h + GameConfig.TerrainNoiseAmplitude) / (2 * GameConfig.TerrainNoiseAmplitude)
+	p.Color = VisualTheme.GrassColor:Lerp(VisualTheme.GrassNoiseMix, math.clamp(t, 0, 1))
 	p.Parent = parent
 	return p
 end

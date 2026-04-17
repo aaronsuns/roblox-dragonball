@@ -56,6 +56,8 @@ In Studio, Output shows `[DragonBall SelfTest] OK` or a list of failures. Logic 
 
 See **[docs/ART_PLAN.md](docs/ART_PLAN.md)** for a phased pipeline: Dragon Ball look (shine + star decals), Namek-inspired terrain/sky, tools (Blender/Krita), and how to hook into `AssetRegistry` / `MapGenerator` without copyright issues.
 
+**M0 (in repo):** [`VisualTheme.lua`](src/ReplicatedStorage/Config/VisualTheme.lua) + [`LightingTheme.server.lua`](src/ServerScriptService/World/LightingTheme.server.lua) + [`OrbVisuals.lua`](src/ServerScriptService/World/OrbVisuals.lua) — greener lighting/fog, grass tint, orbs glass + sparkles + light + red `★` billboard; optional star **Decals** when `Tex_DragonBall_Stars1–7` in `AssetRegistry` are set.
+
 ## Replacing art
 
 Edit [`src/ReplicatedStorage/Config/AssetRegistry.lua`](src/ReplicatedStorage/Config/AssetRegistry.lua): replace `rbxassetid://0` with your uploaded asset IDs; load meshes/sounds from that table in code.
