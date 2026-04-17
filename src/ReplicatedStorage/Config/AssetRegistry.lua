@@ -8,6 +8,14 @@ local AssetRegistry = {
 	SFX_WinFanfare = "rbxassetid://0",
 	SFX_ShenronRumble = "rbxassetid://0",
 	Mesh_DragonBall = "rbxassetid://0", -- optional MeshId on orb Parts
+	-- Full orb sprites (one file per star). Priority over Tex_DragonBall_Stars*. When set, OrbVisuals uses BillboardGui + ImageLabel (always visible).
+	Tex_DragonBall_OrbFull1 = "rbxassetid://116519344579733",
+	Tex_DragonBall_OrbFull2 = "rbxassetid://123616024255985",
+	Tex_DragonBall_OrbFull3 = "rbxassetid://112652755016723",
+	Tex_DragonBall_OrbFull4 = "rbxassetid://72597119179916",
+	Tex_DragonBall_OrbFull5 = "rbxassetid://137251263984784",
+	Tex_DragonBall_OrbFull6 = "rbxassetid://100421338508432",
+	Tex_DragonBall_OrbFull7 = "rbxassetid://90425669580030",
 	-- Optional transparent decals (one per star layout). OrbVisuals applies when non-zero.
 	Tex_DragonBall_Stars1 = "rbxassetid://0",
 	Tex_DragonBall_Stars2 = "rbxassetid://0",

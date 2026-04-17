@@ -14,6 +14,12 @@ local VisualTheme = {
 	-- Dragon Ball base tint (amber crystal)
 	OrbBaseColor = Color3.fromRGB(255, 168, 58),
 	OrbSpecularHint = Color3.fromRGB(255, 245, 210),
+	-- BillboardGui star row: float above orb center (studs). Increase if the ball is scaled up.
+	OrbStarBillboardStudsOffsetY = 2.45,
+	-- Full-orb BillboardGui: Size **Scale** X/Y = stud width/height in 3D (see BillboardGui.Size docs). Multiplies orb diameter.
+	OrbFullBillboardDiameterScale = 1.02,
+	-- false = respect depth (hidden behind walls). true = draw on top of everything (debug / HUD feel).
+	OrbFullBillboardAlwaysOnTop = false,
 
 	-- Lighting snapshot (applied on server boot)
 	Lighting = {

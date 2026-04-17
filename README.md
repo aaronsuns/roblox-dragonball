@@ -2,6 +2,23 @@
 
 Dragon Ball–themed MVP: procedural map, seven star-rated Dragon Balls, random puzzles (**times tables as 4-button multiple choice** for touch/tablet / best-of-3 RPS), 1–7 star HUD, and a short Shenron-style win sequence (~10 s).
 
+## Orb textures (Studio note)
+
+Full-orbit art uses attribute `OrbFullImageUri` + client script `OrbFullArtClient.client.lua`. Billboards live under **PlayerGui** with **`Adornee = orb`**. The art is a **camera-facing sprite** (Billboard), not a sphere UV; size uses **BillboardGui.Size scale = studs** ([Size docs](https://create.roblox.com/docs/reference/engine/classes/BillboardGui)). Tune `VisualTheme.OrbFullBillboardDiameterScale`. **`OrbFullBillboardAlwaysOnTop = false`** so orbs hide behind walls (default).
+
+**Important:** `ImageLabel.Image` should use assets uploaded as **Image** (Open Cloud `assetType: "Image"`). **Decal** upload IDs often stay **blank** in GUI `ImageLabel`. See [Textures & Decals](https://create.roblox.com/docs/en-us/parts/textures-decals.md), [ImageLabel](https://create.roblox.com/docs/reference/engine/classes/ImageLabel), and [Open Cloud usage (Decal, Image)](https://create.roblox.com/docs/en-us/cloud/guides/usage-assets.md).
+
+Debug in Studio **client** command bar once: `_G.__DragonBallOrbArtDebug = true` then Play — Output prints each orb billboard URI.
+
+## Roblox Open Cloud (optional, orb uploads)
+
+Secrets live in **macOS Keychain**, not in the repo (same idea as `~/aaron/zsh/modules/secrets.zsh`).
+
+1. `./tools/roblox-store-api-key-keychain.sh` — paste your API key once (or pipe: `pbpaste | ./tools/roblox-store-api-key-keychain.sh --stdin`).
+2. `./tools/roblox-store-creator-user-id-keychain.sh` — your numeric Roblox user id (profile URL).
+3. New shells: `~/.zsh` already sources `secrets.zsh`, which exports `ROBLOX_API_KEY` and `ROBLOX_CREATOR_USER_ID` when present.
+4. From this repo only: `source tools/load_roblox_env_from_keychain.sh` then `python3 tools/upload_orbs_open_cloud.py`.
+
 ## Prerequisites
 
 - [Rojo](https://rojo.space/) installed (`rojo --version`)

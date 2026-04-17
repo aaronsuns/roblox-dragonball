@@ -1,3 +1,9 @@
 *.rbxlx
 *.rbxl
 *.rbxm
+
+# Local AI / Krita exports (optional folder; keep out of Git by default)
+/assets-src/
+
+# One-off Pillow/OpenCV venv for asset scripts
+/.venv-art/
