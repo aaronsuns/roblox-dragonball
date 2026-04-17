@@ -22,6 +22,15 @@ local GameConfig = {
 	ObstacleCount = 28,
 	WallCount = 12,
 
+	-- Must match MapGenerator floor reference height.
+	ArenaBaseY = 10,
+	-- If player is below this Y and under the arena footprint, teleport to rescue.
+	FallRescueBelowY = 7,
+	-- Horizontal margin beyond cell rim for “under arena” rescue column.
+	FallRescueRadiusExtra = 22,
+	-- Invisible perimeter wall height above deck.
+	PerimeterWallHeight = 55,
+
 	SpawnOffsetFromCenter = 55,
 }
 

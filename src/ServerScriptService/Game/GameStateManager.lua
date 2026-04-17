@@ -7,6 +7,7 @@ local GameConfig = require(ReplicatedStorage.Config.GameConfig)
 local GameRemotes = require(ReplicatedStorage.Remotes.GameRemotes)
 
 local MapGenerator = require(script.Parent.Parent.World.MapGenerator)
+local ArenaSafety = require(script.Parent.Parent.World.ArenaSafety)
 local WinService = require(script.Parent.WinService)
 local PuzzleService = require(script.Parent.PuzzleService)
 local DragonBallService = require(script.Parent.DragonBallService)
@@ -101,6 +102,7 @@ local function startMatch()
 
 	local map = MapGenerator.Generate(matchSeed)
 	teleportContestants(map)
+	ArenaSafety.beginMatch(map, getPhase)
 
 	local slots = table.clone(map.orbSlots)
 	while #slots > GameConfig.OrbCount do
@@ -113,6 +115,7 @@ local tryLobbyStart: (() -> ())? = nil
 
 local function resetRound()
 	setPhase("Resetting", {})
+	ArenaSafety.endMatch()
 	DragonBallService.CancelPuzzlesForEveryone()
 	DragonBallService.ClearOrbs()
 	MapGenerator.Destroy()
@@ -174,6 +177,7 @@ function GameStateManager.Init()
 	end)
 	Players.PlayerRemoving:Connect(function()
 		if phase == "InMatch" or phase == "Ended" then
+			ArenaSafety.endMatch()
 			DragonBallService.CancelPuzzlesForEveryone()
 			DragonBallService.ClearOrbs()
 			MapGenerator.Destroy()

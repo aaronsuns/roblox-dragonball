@@ -10,6 +10,8 @@ export type MapResult = {
 	orbSlots: { Vector3 },
 	spawnA: CFrame,
 	spawnB: CFrame,
+	baseY: number,
+	rimRadius: number,
 }
 
 local MapGenerator = {}
@@ -36,6 +38,44 @@ local function cellPart(parent: Folder, cx: number, cz: number, size: number, y:
 	return p
 end
 
+local function addPerimeterWalls(folder: Folder, baseY: number, rimRadius: number, wallHeight: number)
+	local thickness = 4
+	local span = rimRadius * 2 + thickness * 2 + 24
+	local y = baseY + wallHeight * 0.5
+	local function wall(name: string, cf: CFrame, size: Vector3)
+		local p = Instance.new("Part")
+		p.Name = name
+		p.Anchored = true
+		p.CanCollide = true
+		p.Transparency = 0.92
+		p.Material = Enum.Material.SmoothPlastic
+		p.Color = Color3.fromRGB(120, 180, 255)
+		p.Size = size
+		p.CFrame = cf
+		p.Parent = folder
+	end
+	wall(
+		"PerimeterNorth",
+		CFrame.new(0, y, -(rimRadius + thickness * 0.5)),
+		Vector3.new(span, wallHeight, thickness)
+	)
+	wall(
+		"PerimeterSouth",
+		CFrame.new(0, y, (rimRadius + thickness * 0.5)),
+		Vector3.new(span, wallHeight, thickness)
+	)
+	wall(
+		"PerimeterWest",
+		CFrame.new(-(rimRadius + thickness * 0.5), y, 0),
+		Vector3.new(thickness, wallHeight, span)
+	)
+	wall(
+		"PerimeterEast",
+		CFrame.new((rimRadius + thickness * 0.5), y, 0),
+		Vector3.new(thickness, wallHeight, span)
+	)
+end
+
 local function scatterObstacle(folder: Folder, pos: Vector3, w: number, h: number, d: number, color: Color3)
 	local p = Instance.new("Part")
 	p.Name = "Obstacle"
@@ -56,7 +96,8 @@ function MapGenerator.Generate(seed: number): MapResult
 
 	local half = math.floor((GameConfig.MapSize / 20) / 2)
 	local cell = 20
-	local baseY = 10
+	local baseY = GameConfig.ArenaBaseY
+	local rimRadius = half * cell + cell * 0.5
 
 	for x = -half, half do
 		for z = -half, half do
@@ -100,6 +141,8 @@ function MapGenerator.Generate(seed: number): MapResult
 		p.Parent = folder
 	end
 
+	addPerimeterWalls(folder, baseY, rimRadius, GameConfig.PerimeterWallHeight)
+
 	local orbSlots: { Vector3 } = {}
 	for _ = 1, 48 do
 		local x = rng:NextNumber(-GameConfig.MapSize * 0.42, GameConfig.MapSize * 0.42)
@@ -116,6 +159,8 @@ function MapGenerator.Generate(seed: number): MapResult
 		orbSlots = orbSlots,
 		spawnA = spawnA,
 		spawnB = spawnB,
+		baseY = baseY,
+		rimRadius = rimRadius,
 	}
 end
 

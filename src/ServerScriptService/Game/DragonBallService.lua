@@ -195,4 +195,92 @@ function DragonBallService.CancelPuzzlesForEveryone()
 	end
 end
 
+export type OrbDebugInfo = {
+	star: number,
+	position: Vector3,
+	id: string,
+}
+
+function DragonBallService.GetOrbDebugList(): { OrbDebugInfo }
+	local out: { OrbDebugInfo } = {}
+	for _, info in orbs do
+		table.insert(out, {
+			star = info.star,
+			position = info.part.Position,
+			id = info.id,
+		})
+	end
+	table.sort(out, function(a, b)
+		return a.star < b.star
+	end)
+	return out
+end
+
+function DragonBallService.TeleportPlayerNearStar(player: Player, star: number): boolean
+	local char = player.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not hrp then
+		return false
+	end
+	local target: BasePart? = nil
+	for _, info in orbs do
+		if info.star == star then
+			target = info.part
+			break
+		end
+	end
+	if not target then
+		return false
+	end
+	hrp.AssemblyLinearVelocity = Vector3.zero
+	hrp.CFrame = target.CFrame * CFrame.new(4, 2, 0)
+	return true
+end
+
+function DragonBallService.TeleportPlayerNearAnyOrb(player: Player): boolean
+	local char = player.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not hrp or #orbs == 0 then
+		return false
+	end
+	local best = orbs[1].part
+	local bestDist = (best.Position - hrp.Position).Magnitude
+	for i = 2, #orbs do
+		local d = (orbs[i].part.Position - hrp.Position).Magnitude
+		if d < bestDist then
+			bestDist = d
+			best = orbs[i].part
+		end
+	end
+	hrp.AssemblyLinearVelocity = Vector3.zero
+	hrp.CFrame = best.CFrame * CFrame.new(4, 2, 0)
+	return true
+end
+
+function DragonBallService.SetDebugOrbLabels(enabled: boolean)
+	for _, info in orbs do
+		local existing = info.part:FindFirstChild("DebugOrbLabel")
+		if existing then
+			existing:Destroy()
+		end
+		if enabled then
+			local gui = Instance.new("BillboardGui")
+			gui.Name = "DebugOrbLabel"
+			gui.Size = UDim2.new(0, 120, 0, 36)
+			gui.AlwaysOnTop = true
+			gui.StudsOffset = Vector3.new(0, 4, 0)
+			local t = Instance.new("TextLabel")
+			t.Size = UDim2.new(1, 0, 1, 0)
+			t.BackgroundTransparency = 0.3
+			t.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+			t.TextColor3 = Color3.fromRGB(255, 230, 120)
+			t.Font = Enum.Font.GothamBold
+			t.TextScaled = true
+			t.Text = tostring(info.star) .. " 星"
+			t.Parent = gui
+			gui.Parent = info.part
+		end
+	end
+end
+
 return DragonBallService
