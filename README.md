@@ -1,70 +1,70 @@
 # roblox-dragonball
 
-双人夺珠 MVP：程序化地图、七颗不同星数龙珠、随机谜题（10 以内乘法 / 三局两胜猜拳）、HUD 1–7 星状态、神龙占位演出（约 10 秒）。
+Dragon Ball–themed MVP: procedural map, seven star-rated Dragon Balls, random puzzles (times tables / best-of-3 RPS), 1–7 star HUD, and a short Shenron-style win sequence (~10 s).
 
-## 前置
+## Prerequisites
 
-- [Rojo](https://rojo.space/) 已安装（`rojo --version`）
+- [Rojo](https://rojo.space/) installed (`rojo --version`)
 - Roblox Studio
 
-## 同步到 Studio
+## Sync into Studio
 
-在项目根目录执行：
+From the project root:
 
 ```bash
 rojo serve
 ```
 
-在 Studio 中安装 Rojo 插件，点击 **Connect** 连接到 `localhost:34872`（端口以 Rojo 输出为准），将工程同步到新的或已有的 Place。
+Install the Rojo plugin in Studio, click **Connect** to `localhost:34872` (use the port Rojo prints), and sync into a new or existing place.
 
-## 本地测试
+## Local playtesting
 
-- `GameConfig.AllowSinglePlayerTest` 为 `true` 时，**单人**进入即可开局（方便 Studio 调试）。
-- 正式双人对战将 `AllowSinglePlayerTest` 设为 `false`，并保证 `PlayersRequired = 2`。
+- With `GameConfig.AllowSinglePlayerTest` set to `true`, a **single player** can start a match (handy in Studio).
+- For real 2-player matches, set `AllowSinglePlayerTest` to `false` and keep `PlayersRequired = 2`.
 
-### 掉落与地图边界
+### Falls and arena bounds
 
-- 竞技场四周有**半透明碰撞墙**，减少走出边缘跌落。
-- 若仍掉到默认 Baseplate：在竞技场水平范围下、高度低于 `FallRescueBelowY` 时，会**自动传送回本局出生救援点**（与 `spawnA` 偏移一致）。可在 [`GameConfig.lua`](src/ReplicatedStorage/Config/GameConfig.lua) 调整 `FallRescueBelowY`、`FallRescueRadiusExtra`、`PerimeterWallHeight`。
+- **Semi-transparent perimeter walls** reduce walking off the island.
+- If you still drop onto the default Baseplate: while horizontally under the arena footprint and below `FallRescueBelowY`, you are **teleported to the rescue spawn** (same offset as `spawnA`). Tune `FallRescueBelowY`, `FallRescueRadiusExtra`, and `PerimeterWallHeight` in [`GameConfig.lua`](src/ReplicatedStorage/Config/GameConfig.lua).
 
-### Studio 快速手动测试（聊天命令）
+### Studio quick manual tests (chat)
 
-仅在 **Roblox Studio 运行（非发布 Live）** 时生效，打开 **Output** 查看打印。
+Only runs in **Roblox Studio (not a published live game)**. Watch **Output** for prints.
 
-进入对局（`InMatch`）后，在聊天栏输入（注意开头 `/db ` 有空格）：
+After the match is **InMatch**, type in chat (note the space after `/db `):
 
-| 命令 | 作用 |
+| Command | Effect |
+|---------|--------|
+| `/db help` | List commands |
+| `/db orbs` | Print each orb’s **star count + world position** to Output |
+| `/db tp 3` | Teleport beside the **3-star** ball (use 1–7) |
+| `/db near` | Teleport to the **nearest** orb |
+| `/db labels on` / `off` | Toggle **star labels** above orbs |
+| `/db spawn` | Teleport to **rescue spawn** (same as fall recovery) |
+| `/db phase` | Print current phase (Lobby / InMatch, etc.) |
+
+If **TextChat** is enabled and `Chatted` does not fire, disable TextChatService in Studio for testing, or add TextChat command hooks later.
+
+### Self-test on boot
+
+In Studio, Output shows `[DragonBall SelfTest] OK` or a list of failures. Logic lives in [`SelfTest.lua`](src/ReplicatedStorage/Shared/SelfTest.lua).
+
+## Replacing art
+
+Edit [`src/ReplicatedStorage/Config/AssetRegistry.lua`](src/ReplicatedStorage/Config/AssetRegistry.lua): replace `rbxassetid://0` with your uploaded asset IDs; load meshes/sounds from that table in code.
+
+## Layout
+
+| Path | Role |
 |------|------|
-| `/db help` | 列出命令 |
-| `/db orbs` | 在 Output 打印每颗龙珠的 **星数 + 世界坐标** |
-| `/db tp 3` | 传送到 **3 星**龙珠旁边（可换 1–7） |
-| `/db near` | 传送到**离你最近**的龙珠 |
-| `/db labels on` / `off` | 龙珠头顶显示/关闭 **星数标签**（便于肉眼找） |
-| `/db spawn` | 传送到本局**救援出生点**（与自动回传同位置） |
-| `/db phase` | 打印当前阶段（Lobby / InMatch 等） |
-
-若使用新版 **TextChat** 且 `Chatted` 无反应，可暂时在 Studio 里关闭 TextChatService 测试，或后续再加 TextChatCommand 适配。
-
-### 自动自检
-
-Studio 启动时会在 Output 打印 `[DragonBall SelfTest] OK` 或列出失败项；逻辑见 [`SelfTest.lua`](src/ReplicatedStorage/Shared/SelfTest.lua)。
-
-## 替换正式美术
-
-编辑 [`src/ReplicatedStorage/Config/AssetRegistry.lua`](src/ReplicatedStorage/Config/AssetRegistry.lua)，把 `rbxassetid://0` 换成你上传后的资源 ID；在代码中通过该表加载音效/网格等。
-
-## 目录说明
-
-| 路径 | 作用 |
-|------|------|
-| `src/ReplicatedStorage/Config/` | `GameConfig`、`AssetRegistry` |
-| `src/ReplicatedStorage/Remotes/` | `GameRemotes`（仅服务器创建，客户端等待） |
-| `src/ServerScriptService/Bootstrap.server.lua` | 服务器入口 |
-| `src/ServerScriptService/Game/` | 状态机、龙珠、谜题、胜负 |
-| `src/ServerScriptService/World/MapGenerator.lua` | 地形与障碍 |
-| `src/ServerScriptService/World/ArenaSafety.lua` | 周边挡墙 + 掉落回传 |
-| `src/ServerScriptService/Dev/DebugChat.server.lua` | Studio 聊天调试（仅 Studio） |
-| `src/ServerScriptService/Dev/SelfTestRunner.server.lua` | Studio 启动自检 |
-| `src/ReplicatedStorage/Shared/SelfTest.lua` | 自检断言集合 |
-| `src/ServerScriptService/Cinematic/` | 神龙演出（Remote + 占位） |
-| `src/StarterPlayer/StarterPlayerScripts/ClientMain.client.lua` | HUD、谜题 UI、演出条 |
+| `src/ReplicatedStorage/Config/` | `GameConfig`, `AssetRegistry` |
+| `src/ReplicatedStorage/Remotes/` | `GameRemotes` (created on server; clients wait) |
+| `src/ServerScriptService/Bootstrap.server.lua` | Server entry |
+| `src/ServerScriptService/Game/` | State machine, orbs, puzzles, win logic |
+| `src/ServerScriptService/World/MapGenerator.lua` | Terrain and props |
+| `src/ServerScriptService/World/ArenaSafety.lua` | Perimeter walls + fall rescue |
+| `src/ServerScriptService/Dev/DebugChat.server.lua` | Studio chat debug |
+| `src/ServerScriptService/Dev/SelfTestRunner.server.lua` | Studio boot self-test |
+| `src/ReplicatedStorage/Shared/SelfTest.lua` | Self-test assertions |
+| `src/ServerScriptService/Cinematic/` | Win sequence (remotes + placeholder) |
+| `src/StarterPlayer/StarterPlayerScripts/ClientMain.client.lua` | HUD, puzzle UI, cinematic bar |

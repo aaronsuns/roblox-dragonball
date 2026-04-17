@@ -20,13 +20,13 @@ local function splitWords(s: string): { string }
 end
 
 local function help(player: Player)
-	print(string.format("[DragonBall /db] player=%s — 命令:", player.Name))
+	print(string.format("[DragonBall /db] player=%s — commands:", player.Name))
 	print("  /db help")
-	print("  /db orbs        — 在 Output 打印所有龙珠世界坐标")
-	print("  /db tp <1-7>    — 传送到指定星数龙珠旁")
-	print("  /db near        — 传送到离你最近的龙珠")
-	print("  /db labels on|off — 龙珠头顶调试标签")
-	print("  /db spawn       — 传送到本局救援出生点（与掉落回传同点）")
+	print("  /db orbs        — print all orb positions to Output")
+	print("  /db tp <1-7>    — teleport next to the N-star ball")
+	print("  /db near        — teleport to the nearest orb")
+	print("  /db labels on|off — show/hide star labels on orbs")
+	print("  /db spawn       — teleport to rescue spawn (same as fall recovery)")
 end
 
 local function onChat(player: Player, message: string)
@@ -54,13 +54,13 @@ local function onChat(player: Player, message: string)
 	if cmd == "tp" then
 		local n = tonumber(args[2])
 		if not n or n < 1 or n > 7 then
-			warn("[DragonBall /db tp] 用法: /db tp <1-7>")
+			warn("[DragonBall /db tp] usage: /db tp <1-7>")
 			return
 		end
 		if DragonBallService.TeleportPlayerNearStar(player, n) then
 			print(string.format("[DragonBall /db tp] ok star=%d player=%s", n, player.Name))
 		else
-			warn(string.format("[DragonBall /db tp] 失败 star=%d（可能已被收集或不在局内）", n))
+			warn(string.format("[DragonBall /db tp] failed star=%d (collected or not in match)", n))
 		end
 		return
 	end
@@ -69,7 +69,7 @@ local function onChat(player: Player, message: string)
 		if DragonBallService.TeleportPlayerNearAnyOrb(player) then
 			print("[DragonBall /db near] ok " .. player.Name)
 		else
-			warn("[DragonBall /db near] 失败（无龙珠或未加载角色）")
+			warn("[DragonBall /db near] failed (no orbs or character not loaded)")
 		end
 		return
 	end
@@ -78,7 +78,7 @@ local function onChat(player: Player, message: string)
 		local on = string.lower(args[2] or "") == "on"
 		local off = string.lower(args[2] or "") == "off"
 		if not on and not off then
-			warn("[DragonBall /db labels] 用法: /db labels on|off")
+			warn("[DragonBall /db labels] usage: /db labels on|off")
 			return
 		end
 		DragonBallService.SetDebugOrbLabels(on)
@@ -90,7 +90,7 @@ local function onChat(player: Player, message: string)
 		if ArenaSafety.teleportToRescue(player) then
 			print("[DragonBall /db spawn] ok " .. player.Name)
 		else
-			warn("[DragonBall /db spawn] 失败（仅 InMatch 且已开局）")
+			warn("[DragonBall /db spawn] failed (only while InMatch after start)")
 		end
 		return
 	end

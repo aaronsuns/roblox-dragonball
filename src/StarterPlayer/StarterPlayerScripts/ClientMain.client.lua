@@ -70,7 +70,7 @@ phaseLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 phaseLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 phaseLabel.Font = Enum.Font.GothamBold
 phaseLabel.TextScaled = true
-phaseLabel.Text = "阶段: Lobby"
+phaseLabel.Text = "Stage: Lobby"
 phaseLabel.Parent = hudGui
 
 local starRow = Instance.new("Frame")
@@ -126,7 +126,7 @@ end
 
 remotes.GameState.OnClientEvent:Connect(function(payload: any)
 	if typeof(payload) == "table" and typeof(payload.phase) == "string" then
-		phaseLabel.Text = "阶段: " .. payload.phase
+		phaseLabel.Text = "Stage: " .. payload.phase
 	end
 end)
 
@@ -159,7 +159,7 @@ title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBold
 title.TextScaled = true
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.Text = "谜题"
+title.Text = "Challenge"
 title.Parent = panel
 
 local body = Instance.new("TextLabel")
@@ -178,14 +178,14 @@ inputBox.Size = UDim2.new(1, -20, 0, 40)
 inputBox.Position = UDim2.new(0, 10, 0, 130)
 inputBox.ClearTextOnFocus = false
 inputBox.Text = ""
-inputBox.PlaceholderText = "输入答案"
+inputBox.PlaceholderText = "Type your answer"
 inputBox.Visible = false
 inputBox.Parent = panel
 
 local submitBtn = Instance.new("TextButton")
 submitBtn.Size = UDim2.new(0.45, 0, 0, 40)
 submitBtn.Position = UDim2.new(0.05, 0, 0, 200)
-submitBtn.Text = "提交"
+submitBtn.Text = "Submit"
 submitBtn.Font = Enum.Font.GothamBold
 submitBtn.TextScaled = true
 submitBtn.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
@@ -199,7 +199,7 @@ rpsRow.BackgroundTransparency = 1
 rpsRow.Visible = false
 rpsRow.Parent = panel
 
-local rpsNames = { "石头", "布", "剪刀" }
+local rpsNames = { "Rock", "Paper", "Scissors" }
 local rpsButtons: { TextButton } = {}
 for i = 0, 2 do
 	local b = Instance.new("TextButton")
@@ -217,7 +217,7 @@ end
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0.45, 0, 0, 40)
 closeBtn.Position = UDim2.new(0.5, 0, 0, 200)
-closeBtn.Text = "关闭"
+closeBtn.Text = "Close"
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.TextScaled = true
 closeBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 90)
@@ -265,11 +265,11 @@ remotes.OpenPuzzle.OnClientEvent:Connect(function(payload: any)
 	UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 	local kind = payload.kind
 	currentKind = kind
-	title.Text = "获得 " .. tostring(payload.star) .. " 星球"
+	title.Text = "Dragon Ball (" .. tostring(payload.star) .. "-star)"
 	if kind == "Multiplication" then
 		inputBox.Visible = true
 		rpsRow.Visible = false
-		body.Text = string.format("计算: %d × %d = ?", payload.a or 0, payload.b or 0)
+		body.Text = string.format("What is %d × %d?", payload.a or 0, payload.b or 0)
 		inputBox.Text = ""
 	elseif kind == "RpsBestOf3" then
 		inputBox.Visible = false
@@ -278,10 +278,10 @@ remotes.OpenPuzzle.OnClientEvent:Connect(function(payload: any)
 		local cpu = payload.lastRound and payload.lastRound.cpu
 		local extra = ""
 		if typeof(yours) == "number" and typeof(cpu) == "number" then
-			extra = string.format("\n上轮: 你 %s vs CPU %s", rpsNames[yours + 1], rpsNames[cpu + 1])
+			extra = string.format("\nLast round: You %s vs CPU %s", rpsNames[yours + 1], rpsNames[cpu + 1])
 		end
 		body.Text = string.format(
-			"三局两胜石头剪刀布\n比分 %d : %d%s",
+			"Rock–Paper–Scissors — best of 3\nScore %d : %d%s",
 			payload.yourWins or 0,
 			payload.oppWins or 0,
 			extra
@@ -314,7 +314,7 @@ cineLabel.BackgroundTransparency = 1
 cineLabel.Font = Enum.Font.GothamBold
 cineLabel.TextScaled = true
 cineLabel.TextColor3 = Color3.fromRGB(120, 255, 160)
-cineLabel.Text = "神龙现身"
+cineLabel.Text = "The Eternal Dragon"
 cineLabel.Parent = cineGui
 
 local cineSub = Instance.new("TextLabel")
@@ -343,7 +343,7 @@ remotes.Cinematic.OnClientEvent:Connect(function(payload: any)
 		return
 	end
 	cineGui.Enabled = true
-	cineSub.Text = "胜者: " .. tostring(payload.winnerName or "")
+	cineSub.Text = "Winner: " .. tostring(payload.winnerName or "")
 	local duration = typeof(payload.duration) == "number" and payload.duration or 10
 	barFill.Size = UDim2.new(0, 0, 1, 0)
 	local tw = TweenService:Create(barFill, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
@@ -359,5 +359,5 @@ remotes.MatchResult.OnClientEvent:Connect(function(payload: any)
 	if typeof(payload) ~= "table" then
 		return
 	end
-	phaseLabel.Text = "胜者: " .. tostring(payload.winnerName or "")
+	phaseLabel.Text = "Winner: " .. tostring(payload.winnerName or "")
 end)

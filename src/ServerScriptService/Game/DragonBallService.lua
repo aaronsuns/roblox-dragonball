@@ -276,7 +276,7 @@ function DragonBallService.SetDebugOrbLabels(enabled: boolean)
 			t.TextColor3 = Color3.fromRGB(255, 230, 120)
 			t.Font = Enum.Font.GothamBold
 			t.TextScaled = true
-			t.Text = tostring(info.star) .. " 星"
+			t.Text = tostring(info.star) .. "-star"
 			t.Parent = gui
 			gui.Parent = info.part
 		end
