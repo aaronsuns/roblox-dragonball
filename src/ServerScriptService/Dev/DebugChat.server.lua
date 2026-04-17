@@ -2,14 +2,29 @@
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
-if not RunService:IsStudio() then
+local TextChatService = game:GetService("TextChatService")
+
+local GameConfig = require(ReplicatedStorage.Config.GameConfig)
+
+local function debugChatEnabled(): boolean
+	if RunService:IsStudio() then
+		return true
+	end
+	return GameConfig.DebugChatOutsideStudio == true
+end
+
+if not debugChatEnabled() then
 	return
 end
 
 local DragonBallService = require(ServerScriptService.Game.DragonBallService)
 local ArenaSafety = require(ServerScriptService.World.ArenaSafety)
 local GameStateManager = require(ServerScriptService.Game.GameStateManager)
+
+-- TextChat + legacy Chatted can both deliver the same line; ignore duplicates briefly.
+local lastDbLine: { [number]: { t: number, s: string } } = {}
 
 local function splitWords(s: string): { string }
 	local t: { string } = {}
@@ -19,21 +34,47 @@ local function splitWords(s: string): { string }
 	return t
 end
 
+--[[
+	Returns (isDbCommand, restAfterDb) where rest is the substring after "/db" for parsing.
+	Accepts "/db", "/db help", "/db  help" (leading/trailing spaces trimmed).
+]]
+local function parseDbPayload(message: string): (boolean, string)
+	local m = string.gsub(message, "^%s+", "")
+	m = string.gsub(m, "%s+$", "")
+	if m == "/db" then
+		return true, ""
+	end
+	if string.sub(m, 1, 4) == "/db " then
+		return true, string.sub(m, 5)
+	end
+	return false, ""
+end
+
 local function help(player: Player)
-	print(string.format("[DragonBall /db] player=%s — commands:", player.Name))
-	print("  /db help")
-	print("  /db orbs        — print all orb positions to Output")
+	print(string.format("[DragonBall /db] player=%s — commands (see Studio Output window):", player.Name))
+	print("  /db or /db help")
+	print("  /db orbs        — print all orb positions")
 	print("  /db tp <1-7>    — teleport next to the N-star ball")
 	print("  /db near        — teleport to the nearest orb")
-	print("  /db labels on|off — show/hide star labels on orbs")
-	print("  /db spawn       — teleport to rescue spawn (same as fall recovery)")
+	print("  /db labels on|off — star labels on orbs")
+	print("  /db spawn       — teleport to rescue spawn")
+	print("  /db phase       — print match phase")
+	warn(string.format("[DragonBall /db] %s: replies are printed to the SERVER Output, not in chat.", player.Name))
 end
 
 local function onChat(player: Player, message: string)
-	if string.sub(message, 1, 4) ~= "/db " then
+	local isDb, rest = parseDbPayload(message)
+	if not isDb then
 		return
 	end
-	local rest = string.sub(message, 5)
+	local uid = player.UserId
+	local prev = lastDbLine[uid]
+	local now = os.clock()
+	if prev and prev.s == message and now - prev.t < 0.35 then
+		return
+	end
+	lastDbLine[uid] = { t = now, s = message }
+
 	local args = splitWords(rest)
 	local cmd = string.lower(args[1] or "help")
 
@@ -103,14 +144,44 @@ local function onChat(player: Player, message: string)
 	help(player)
 end
 
-Players.PlayerAdded:Connect(function(player: Player)
+local function hookPlayerChatted(player: Player)
 	player.Chatted:Connect(function(message: string)
 		onChat(player, message)
 	end)
-end)
-
-for _, p in Players:GetPlayers() do
-	p.Chatted:Connect(function(message: string)
-		onChat(p, message)
-	end)
 end
+
+Players.PlayerAdded:Connect(hookPlayerChatted)
+for _, p in Players:GetPlayers() do
+	hookPlayerChatted(p)
+end
+
+-- Default Text Chat does not always fire Player.Chatted; listen on RBXGeneral as well.
+task.defer(function()
+	local channels = TextChatService:FindFirstChild("TextChannels")
+		or TextChatService:WaitForChild("TextChannels", 45)
+	if not channels then
+		warn("[DragonBall /db] TextChannels not found; relying on Player.Chatted only.")
+		return
+	end
+	local general = channels:FindFirstChild("RBXGeneral") or channels:WaitForChild("RBXGeneral", 15)
+	if not general or not general:IsA("TextChannel") then
+		warn("[DragonBall /db] RBXGeneral TextChannel not found; relying on Player.Chatted only.")
+		return
+	end
+	general.MessageReceived:Connect(function(message: any)
+		local text = message.Text
+		if typeof(text) ~= "string" then
+			return
+		end
+		local src = message.TextSource
+		if not src then
+			return
+		end
+		local plr = Players:GetPlayerByUserId(src.UserId)
+		if not plr then
+			return
+		end
+		onChat(plr, text)
+	end)
+	print("[DragonBall /db] Listening on TextChat RBXGeneral + Player.Chatted")
+end)

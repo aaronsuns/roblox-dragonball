@@ -28,23 +28,25 @@ Install the Rojo plugin in Studio, click **Connect** to `localhost:34872` (use t
 - **Semi-transparent perimeter walls** reduce walking off the island.
 - If you still drop onto the default Baseplate: while horizontally under the arena footprint and below `FallRescueBelowY`, you are **teleported to the rescue spawn** (same offset as `spawnA`). Tune `FallRescueBelowY`, `FallRescueRadiusExtra`, and `PerimeterWallHeight` in [`GameConfig.lua`](src/ReplicatedStorage/Config/GameConfig.lua).
 
-### Studio quick manual tests (chat)
+### Quick manual tests (`/db` chat)
 
-Only runs in **Roblox Studio (not a published live game)**. Watch **Output** for prints.
+**Where results appear:** commands are handled on the **server**. Open **View → Output** in Studio (or your server logs). They do **not** echo into the in-game chat window.
 
-After the match is **InMatch**, type in chat (note the space after `/db `):
+**When it runs:** by default **only in Roblox Studio** (`RunService:IsStudio()`). To allow `/db` on a published place (e.g. private test), set `GameConfig.DebugChatOutsideStudio = true` (not recommended for public games).
+
+**Typing:** you can use **`/db`** or **`/db help`**. Subcommands use a space after `/db`, e.g. `/db tp 3`.
 
 | Command | Effect |
 |---------|--------|
-| `/db help` | List commands |
-| `/db orbs` | Print each orb’s **star count + world position** to Output |
+| `/db` or `/db help` | List commands (in Output) |
+| `/db orbs` | Print each orb’s **star count + world position** |
 | `/db tp 3` | Teleport beside the **3-star** ball (use 1–7) |
 | `/db near` | Teleport to the **nearest** orb |
 | `/db labels on` / `off` | Toggle **star labels** above orbs |
 | `/db spawn` | Teleport to **rescue spawn** (same as fall recovery) |
 | `/db phase` | Print current phase (Lobby / InMatch, etc.) |
 
-If **TextChat** is enabled and `Chatted` does not fire, disable TextChatService in Studio for testing, or add TextChat command hooks later.
+**Text Chat:** the script listens to **`RBXGeneral`** `MessageReceived` as well as `Player.Chatted`, so default Text Chat in Studio should work. On startup you should see `[DragonBall /db] Listening on TextChat RBXGeneral + Player.Chatted` in Output once.
 
 ### Self-test on boot
 

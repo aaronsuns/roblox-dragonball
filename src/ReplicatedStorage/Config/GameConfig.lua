@@ -36,6 +36,9 @@ local GameConfig = {
 	PerimeterWallHeight = 55,
 
 	SpawnOffsetFromCenter = 55,
+
+	-- When true, `/db` debug chat works in published games (any player). Keep false for public releases.
+	DebugChatOutsideStudio = false,
 }
 
 return table.freeze(GameConfig)
