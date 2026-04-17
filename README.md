@@ -52,6 +52,10 @@ Install the Rojo plugin in Studio, click **Connect** to `localhost:34872` (use t
 
 In Studio, Output shows `[DragonBall SelfTest] OK` or a list of failures. Logic lives in [`SelfTest.lua`](src/ReplicatedStorage/Shared/SelfTest.lua).
 
+## Art and visuals (plan)
+
+See **[docs/ART_PLAN.md](docs/ART_PLAN.md)** for a phased pipeline: Dragon Ball look (shine + star decals), Namek-inspired terrain/sky, tools (Blender/Krita), and how to hook into `AssetRegistry` / `MapGenerator` without copyright issues.
+
 ## Replacing art
 
 Edit [`src/ReplicatedStorage/Config/AssetRegistry.lua`](src/ReplicatedStorage/Config/AssetRegistry.lua): replace `rbxassetid://0` with your uploaded asset IDs; load meshes/sounds from that table in code.
