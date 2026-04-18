@@ -96,8 +96,8 @@ local function addArenaCeiling(folder: Folder, baseY: number, rimRadius: number)
 	p.Name = "ArenaCeiling"
 	p.Anchored = true
 	p.CanCollide = GameConfig.ArenaCeilingCanCollide
-	p.Material = Enum.Material.SmoothPlastic
-	p.Color = Color3.fromRGB(95, 145, 128)
+	p.Material = Enum.Material.Neon
+	p.Color = VisualTheme.ArenaCeilingColor
 	p.Transparency = GameConfig.ArenaCeilingTransparency
 	p.Size = Vector3.new(span, th, span)
 	p.CFrame = CFrame.new(0, centerY, 0)
@@ -110,7 +110,7 @@ local function scatterObstacle(folder: Folder, pos: Vector3, w: number, h: numbe
 	p.Anchored = true
 	p.Size = Vector3.new(w, h, d)
 	p.CFrame = CFrame.new(pos)
-	p.Material = Enum.Material.SmoothPlastic
+	p.Material = Enum.Material.Slate
 	p.Color = color
 	p.Parent = folder
 	return p
@@ -141,14 +141,11 @@ function MapGenerator.Generate(seed: number): MapResult
 		local w = rng:NextInteger(6, 14)
 		local d = rng:NextInteger(6, 14)
 		local y = baseY + h * 0.5 + rng:NextNumber(0, GameConfig.TerrainNoiseAmplitude)
-		scatterObstacle(
-			folder,
-			Vector3.new(x, y, z),
-			w,
-			h,
-			d,
-			Color3.fromRGB(160 + rng:NextInteger(0, 40), 120 + rng:NextInteger(0, 30), 90)
-		)
+		local oc0 = VisualTheme.ObstacleColorMin
+		local oc1 = VisualTheme.ObstacleColorMax
+		local r = rng:NextNumber(0, 1)
+		local obsColor = oc0:Lerp(oc1, r)
+		scatterObstacle(folder, Vector3.new(x, y, z), w, h, d, obsColor)
 	end
 
 	for _ = 1, GameConfig.WallCount do
@@ -164,8 +161,8 @@ function MapGenerator.Generate(seed: number): MapResult
 		p.Anchored = true
 		p.Size = Vector3.new(len, wallH, thick)
 		p.CFrame = CFrame.lookAt(Vector3.new(x, baseY + wallH * 0.5, z), Vector3.new(0, baseY + wallH * 0.5, 0))
-		p.Material = Enum.Material.Concrete
-		p.Color = Color3.fromRGB(130, 130, 135)
+		p.Material = Enum.Material.Slate
+		p.Color = VisualTheme.WallColor
 		p.Parent = folder
 	end
 

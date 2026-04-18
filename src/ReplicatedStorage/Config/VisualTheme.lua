@@ -49,6 +49,14 @@ local VisualTheme = {
 		Saturation = 0.12,
 		TintColor = Color3.fromRGB(235, 255, 248),
 	},
+
+	-- Arena roof: Neon self-illumination only (no ceiling PointLights — those lit buildings too much).
+	ArenaCeilingColor = Color3.fromRGB(105, 230, 175),
+
+	-- Procedural obstacles / radial walls: keep muted so only the roof reads “bright”.
+	ObstacleColorMin = Color3.fromRGB(52, 44, 38),
+	ObstacleColorMax = Color3.fromRGB(82, 68, 56),
+	WallColor = Color3.fromRGB(56, 56, 60),
 }
 
 return table.freeze(VisualTheme)

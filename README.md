@@ -44,6 +44,7 @@ Install the Rojo plugin in Studio, click **Connect** to `localhost:34872` (use t
 
 - **Semi-transparent perimeter walls** reduce walking off the island.
 - If you still drop onto the default Baseplate: while horizontally under the arena footprint and below `FallRescueBelowY`, you are **teleported to the rescue spawn** (same offset as `spawnA`). Tune `FallRescueBelowY`, `FallRescueRadiusExtra`, and `PerimeterWallHeight` in [`GameConfig.lua`](src/ReplicatedStorage/Config/GameConfig.lua). An optional **ceiling** (`ArenaCeiling*`) blocks scouting from above; disable with `ArenaCeilingEnabled = false` if you prefer an open sky.
+- **`CameraMaxZoomDistance`** (see [`GameConfig.lua`](src/ReplicatedStorage/Config/GameConfig.lua) and `default.project.json` on **StarterPlayer**) limits how far players can zoom the camera out so they cannot trivially see the whole arena from above. Roblox does not expose a single script API to remove platform **menu / world-map** UI on every client; check **Studio → File → Experience Settings** and the [Creator Dashboard](https://create.roblox.com/dashboard/creations) for your experience if you need to adjust navigation or other UI.
 
 ### Quick manual tests (`/db` chat)
 

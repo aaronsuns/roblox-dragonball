@@ -22,11 +22,12 @@ local GameConfig = {
 	ShenronCinematicSeconds = 10,
 	PostMatchResetSeconds = 3,
 
-	MapSize = 180,
+	-- Island floor is (2*half+1)*20 studs where half = floor((MapSize/20)/2); e.g. MapSize 340 → half 8 → 340×340.
+	MapSize = 340,
 	BaseplateThickness = 2,
 	TerrainNoiseAmplitude = 6,
-	ObstacleCount = 40,
-	WallCount = 22,
+	ObstacleCount = 76,
+	WallCount = 42,
 	-- Radial walls spawn between this distance and MapSize*0.45 (lower = denser center).
 	WallMinDistanceFromCenter = 8,
 
@@ -44,10 +45,15 @@ local GameConfig = {
 	ArenaCeilingThicknessStuds = 6,
 	-- Underside of ceiling sits this many studs above ArenaBaseY (keep > PerimeterWallHeight).
 	ArenaCeilingClearanceAboveBaseY = 54,
-	ArenaCeilingTransparency = 0.14,
+	-- Lower = brighter-looking Neon roof (see VisualTheme.ArenaCeilingColor).
+	ArenaCeilingTransparency = 0.08,
 	ArenaCeilingCanCollide = true,
 
-	SpawnOffsetFromCenter = 55,
+	-- Player spawns on ±Z; scale with larger MapSize so spawns stay toward opposite edges.
+	SpawnOffsetFromCenter = 102,
+
+	-- Max camera zoom-out (studs). Lower = less overhead view of the arena (harder to spot orbs). Applied on client + StarterPlayer.
+	CameraMaxZoomDistance = 72,
 
 	-- When true, `/db` debug chat works in published games (any player). Keep false for public releases.
 	DebugChatOutsideStudio = false,
