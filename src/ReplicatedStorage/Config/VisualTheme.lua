@@ -53,10 +53,32 @@ local VisualTheme = {
 	-- Arena roof: Neon self-illumination only (no ceiling PointLights — those lit buildings too much).
 	ArenaCeilingColor = Color3.fromRGB(105, 230, 175),
 
-	-- Procedural obstacles / radial walls: keep muted so only the roof reads “bright”.
-	ObstacleColorMin = Color3.fromRGB(52, 44, 38),
-	ObstacleColorMax = Color3.fromRGB(82, 68, 56),
-	WallColor = Color3.fromRGB(56, 56, 60),
+	-- Procedural buildings: random material + palette (MapGenerator). Muted so Neon roof stays the focal read.
+	BuildingWallMaterials = {
+		Enum.Material.Brick,
+		Enum.Material.Cobblestone,
+		Enum.Material.Concrete,
+		Enum.Material.Pebble,
+		Enum.Material.Rock,
+		Enum.Material.Slate,
+		Enum.Material.Pavement,
+		Enum.Material.WoodPlanks,
+	},
+	-- Random tint per building (walls / boxes); keep in a dusty earth / stone range.
+	BuildingColorPalette = {
+		Color3.fromRGB(58, 52, 48),
+		Color3.fromRGB(72, 62, 54),
+		Color3.fromRGB(68, 58, 50),
+		Color3.fromRGB(78, 70, 62),
+		Color3.fromRGB(62, 58, 56),
+		Color3.fromRGB(70, 64, 58),
+		Color3.fromRGB(55, 50, 46),
+		Color3.fromRGB(80, 68, 58),
+		Color3.fromRGB(64, 60, 52),
+		Color3.fromRGB(74, 66, 58),
+		Color3.fromRGB(60, 54, 48),
+		Color3.fromRGB(52, 48, 44),
+	},
 }
 
 return table.freeze(VisualTheme)

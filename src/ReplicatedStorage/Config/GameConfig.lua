@@ -26,8 +26,16 @@ local GameConfig = {
 	MapSize = 340,
 	BaseplateThickness = 2,
 	TerrainNoiseAmplitude = 6,
-	ObstacleCount = 76,
-	WallCount = 42,
+	ObstacleCount = 128,
+	WallCount = 76,
+	-- Keep buildings inside the grass rim (see MapGenerator placement margin).
+	BuildingPlacementMarginStuds = 12,
+	-- Stratified fill: one candidate per grid cell so large empty patches are rare (see MapGenerator).
+	BuildingFillGridStepStuds = 34,
+	-- Leave a few cells empty for organic variation (0–1).
+	BuildingFillCellSkipChance = 0.07,
+	-- No grid-fill buildings within this XZ distance of ±SpawnOffsetFromCenter spawns.
+	BuildingSpawnClearRadius = 24,
 	-- Radial walls spawn between this distance and MapSize*0.45 (lower = denser center).
 	WallMinDistanceFromCenter = 8,
 

@@ -17,6 +17,22 @@ export type MapResult = {
 
 local MapGenerator = {}
 
+local function pickBuildingMaterial(rng: Random): Enum.Material
+	local list = VisualTheme.BuildingWallMaterials
+	return list[rng:NextInteger(1, #list)]
+end
+
+local function pickBuildingColor(rng: Random): Color3
+	local palette = VisualTheme.BuildingColorPalette
+	local c = palette[rng:NextInteger(1, #palette)]
+	local j = rng:NextNumber(-0.05, 0.05)
+	return Color3.new(
+		math.clamp(c.R + j, 0, 1),
+		math.clamp(c.G + j, 0, 1),
+		math.clamp(c.B + j, 0, 1)
+	)
+end
+
 local function clearArena()
 	local existing = Workspace:FindFirstChild("DragonBallArena")
 	if existing then
@@ -104,16 +120,79 @@ local function addArenaCeiling(folder: Folder, baseY: number, rimRadius: number)
 	p.Parent = folder
 end
 
-local function scatterObstacle(folder: Folder, pos: Vector3, w: number, h: number, d: number, color: Color3)
+local function scatterObstacle(
+	folder: Folder,
+	pos: Vector3,
+	w: number,
+	h: number,
+	d: number,
+	color: Color3,
+	material: Enum.Material,
+	yaw: number
+)
 	local p = Instance.new("Part")
 	p.Name = "Obstacle"
 	p.Anchored = true
 	p.Size = Vector3.new(w, h, d)
-	p.CFrame = CFrame.new(pos)
-	p.Material = Enum.Material.Slate
+	p.CFrame = CFrame.new(pos) * CFrame.Angles(0, yaw, 0)
+	p.Material = material
 	p.Color = color
 	p.Parent = folder
 	return p
+end
+
+local function xzNearSpawnClear(x: number, z: number, spawnZ: number, radius: number): boolean
+	local dz1 = z - spawnZ
+	local dz2 = z + spawnZ
+	local d1 = math.sqrt(x * x + dz1 * dz1)
+	local d2 = math.sqrt(x * x + dz2 * dz2)
+	return d1 < radius or d2 < radius
+end
+
+local function scatterFillGridObstacles(
+	folder: Folder,
+	baseY: number,
+	placeExtent: number,
+	rng: Random,
+	spawnOffsetZ: number
+)
+	local step = GameConfig.BuildingFillGridStepStuds
+	local width = 2 * placeExtent
+	local nx = math.max(2, math.floor(width / step))
+	local actual = width / nx
+	local skipP = GameConfig.BuildingFillCellSkipChance
+	local clearR = GameConfig.BuildingSpawnClearRadius
+
+	for ix = 0, nx - 1 do
+		for iz = 0, nx - 1 do
+			if rng:NextNumber() < skipP then
+				continue
+			end
+			local jx = rng:NextNumber(-actual * 0.38, actual * 0.38)
+			local jz = rng:NextNumber(-actual * 0.38, actual * 0.38)
+			local cx = -placeExtent + (ix + 0.5) * actual + jx
+			local cz = -placeExtent + (iz + 0.5) * actual + jz
+			cx = math.clamp(cx, -placeExtent, placeExtent)
+			cz = math.clamp(cz, -placeExtent, placeExtent)
+			if xzNearSpawnClear(cx, cz, spawnOffsetZ, clearR) then
+				continue
+			end
+			local h = rng:NextInteger(5, 15)
+			local w = rng:NextInteger(5, 13)
+			local d = rng:NextInteger(5, 13)
+			local y = baseY + h * 0.5 + rng:NextNumber(0, GameConfig.TerrainNoiseAmplitude * 0.85)
+			scatterObstacle(
+				folder,
+				Vector3.new(cx, y, cz),
+				w,
+				h,
+				d,
+				pickBuildingColor(rng),
+				pickBuildingMaterial(rng),
+				rng:NextNumber(0, math.pi * 2)
+			)
+		end
+	end
 end
 
 function MapGenerator.Generate(seed: number): MapResult
@@ -126,6 +205,7 @@ function MapGenerator.Generate(seed: number): MapResult
 	local cell = 20
 	local baseY = GameConfig.ArenaBaseY
 	local rimRadius = half * cell + cell * 0.5
+	local placeExtent = math.max(8, rimRadius - GameConfig.BuildingPlacementMarginStuds)
 
 	for x = -half, half do
 		for z = -half, half do
@@ -135,22 +215,23 @@ function MapGenerator.Generate(seed: number): MapResult
 
 	local rng = Random.new(seed)
 	for _ = 1, GameConfig.ObstacleCount do
-		local x = rng:NextNumber(-GameConfig.MapSize * 0.4, GameConfig.MapSize * 0.4)
-		local z = rng:NextNumber(-GameConfig.MapSize * 0.4, GameConfig.MapSize * 0.4)
+		local x = rng:NextNumber(-placeExtent, placeExtent)
+		local z = rng:NextNumber(-placeExtent, placeExtent)
 		local h = rng:NextInteger(6, 16)
 		local w = rng:NextInteger(6, 14)
 		local d = rng:NextInteger(6, 14)
 		local y = baseY + h * 0.5 + rng:NextNumber(0, GameConfig.TerrainNoiseAmplitude)
-		local oc0 = VisualTheme.ObstacleColorMin
-		local oc1 = VisualTheme.ObstacleColorMax
-		local r = rng:NextNumber(0, 1)
-		local obsColor = oc0:Lerp(oc1, r)
-		scatterObstacle(folder, Vector3.new(x, y, z), w, h, d, obsColor)
+		local obsColor = pickBuildingColor(rng)
+		local obsMat = pickBuildingMaterial(rng)
+		local yaw = rng:NextNumber(0, math.pi * 2)
+		scatterObstacle(folder, Vector3.new(x, y, z), w, h, d, obsColor, obsMat, yaw)
 	end
+
+	scatterFillGridObstacles(folder, baseY, placeExtent, rng, GameConfig.SpawnOffsetFromCenter)
 
 	for _ = 1, GameConfig.WallCount do
 		local angle = rng:NextNumber(0, math.pi * 2)
-		local dist = rng:NextNumber(GameConfig.WallMinDistanceFromCenter, GameConfig.MapSize * 0.45)
+		local dist = rng:NextNumber(GameConfig.WallMinDistanceFromCenter, placeExtent * 0.98)
 		local x = math.cos(angle) * dist
 		local z = math.sin(angle) * dist
 		local len = rng:NextNumber(24, 60)
@@ -160,9 +241,10 @@ function MapGenerator.Generate(seed: number): MapResult
 		p.Name = "Wall"
 		p.Anchored = true
 		p.Size = Vector3.new(len, wallH, thick)
-		p.CFrame = CFrame.lookAt(Vector3.new(x, baseY + wallH * 0.5, z), Vector3.new(0, baseY + wallH * 0.5, 0))
-		p.Material = Enum.Material.Slate
-		p.Color = VisualTheme.WallColor
+		local look = CFrame.lookAt(Vector3.new(x, baseY + wallH * 0.5, z), Vector3.new(0, baseY + wallH * 0.5, 0))
+		p.CFrame = look * CFrame.Angles(0, rng:NextNumber(-0.12, 0.12), rng:NextNumber(-0.04, 0.04))
+		p.Material = pickBuildingMaterial(rng)
+		p.Color = pickBuildingColor(rng)
 		p.Parent = folder
 	end
 
@@ -171,8 +253,8 @@ function MapGenerator.Generate(seed: number): MapResult
 
 	local orbSlots: { Vector3 } = {}
 	for _ = 1, 48 do
-		local x = rng:NextNumber(-GameConfig.MapSize * 0.42, GameConfig.MapSize * 0.42)
-		local z = rng:NextNumber(-GameConfig.MapSize * 0.42, GameConfig.MapSize * 0.42)
+		local x = rng:NextNumber(-placeExtent, placeExtent)
+		local z = rng:NextNumber(-placeExtent, placeExtent)
 		local y = baseY + 4 + rng:NextNumber(0, 8)
 		table.insert(orbSlots, Vector3.new(x, y, z))
 	end

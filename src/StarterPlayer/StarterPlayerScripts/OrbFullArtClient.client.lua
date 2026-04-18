@@ -161,13 +161,15 @@ local function wireArena(folder: Instance)
 	folder.DescendantAdded:Connect(hookDescendant)
 end
 
+-- Wire the first arena if present, and always listen for new arenas. If we only wire when the folder
+-- already exists at join time, we never connect ChildAdded — after a match reset the map is destroyed
+-- and recreated; the second DragonBallArena would not get DescendantAdded / billboard setup (invisible orbs).
 local arena = Workspace:FindFirstChild("DragonBallArena")
 if arena then
 	wireArena(arena)
-else
-	Workspace.ChildAdded:Connect(function(child)
-		if child.Name == "DragonBallArena" then
-			wireArena(child)
-		end
-	end)
 end
+Workspace.ChildAdded:Connect(function(child)
+	if child.Name == "DragonBallArena" then
+		wireArena(child)
+	end
+end)
